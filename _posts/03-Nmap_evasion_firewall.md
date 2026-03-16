@@ -31,7 +31,7 @@ En la siguiente imagen se puede observar un escaneo a la web objetivo, (en este 
 Realizamos un primer escaneo sin obtener respuesta:
 
 
-
+![Evasionnmap](/assets/img/2021/06/1.png)
 
 
 
@@ -39,7 +39,7 @@ Realizamos un primer escaneo sin obtener respuesta:
 Aqui podemos ver la captura con wireshark sobre el puerto 80 sin fragmentar:
 
 
-
+![Evasionnmap](/assets/img/2021/06/1.2.png)
 
 
 
@@ -47,7 +47,7 @@ Aqui podemos ver la captura con wireshark sobre el puerto 80 sin fragmentar:
  Realizamos un nuevo escaneo esta vez usando la fragmentación por defecto -f .Podemos ver que arroja información de puertos.
 
 
-
+![Evasionnmap](/assets/img/2021/06/2.png)
 
 
 
@@ -56,7 +56,7 @@ Ahora veremos como nmap fracciona los paquetes usando -f, como he dicho anterior
 
 
 
-
+![Evasionnmap](/assets/img/2021/06/2.2.png)
 
 
 
@@ -64,14 +64,14 @@ Tambien podemos fragmentar las cabeceras de los paquetes del tamaño 16 bytes co
 
 
 
-
+![Evasionnmap](/assets/img/2021/06/3.png)
 
 
 
 Observamos la captura del paquete con wireshark.
 
 
-
+![Evasionnmap](/assets/img/2021/06/3.2.png)
 
 
 
@@ -80,7 +80,7 @@ Tambien disponemos de la opción personalizada de tamaño del paquete fragmentad
 
 
 
-
+![Evasionnmap](/assets/img/2021/06/4-1.png)
 
 
 
@@ -88,7 +88,7 @@ Podemos observar que el paquete de control arroja los mismos datos que un escane
 
 
 
-
+![Evasionnmap](/assets/img/2021/06/4.3.png)
 
 
 
@@ -100,7 +100,7 @@ Como se puede ver, hemos obtenido más información del objetivo a medida que re
 
 
 
-
+![Evasionnmap](/assets/img/2021/06/6.png)
 
 
 
@@ -116,7 +116,7 @@ Ahora veremos el uso de señuelos durante un escaneo. Siendo más bien una técn
 
 
 
-
+![Evasionnmap](/assets/img/2021/06/5.png)
 
 
 
@@ -124,7 +124,7 @@ Vemos la captura de paquetes, como se puede ver el señuelo realiza la petición
 
 
 
-
+![Evasionnmap](/assets/img/2021/06/5.1.png)
 
 
 
