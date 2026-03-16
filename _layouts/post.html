@@ -1,0 +1,32 @@
+---
+layout: default
+---
+
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <div class="post-meta">
+      <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+        {{ page.date | date: "%d %B %Y" }}
+      </time>
+      {% if page.categories[0] %}
+        <span class="post-category">{{ page.categories[0] }}</span>
+      {% endif %}
+    </div>
+
+    <h1 class="post-title" itemprop="name headline">{{ page.title | escape }}</h1>
+
+    {% if page.tags %}
+    <div class="post-tags">
+      {% for tag in page.tags %}
+        <span class="tag tag-{{ tag | downcase | replace: ' ', '-' }}">#{{ tag }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    {{ content }}
+  </div>
+
+</article>

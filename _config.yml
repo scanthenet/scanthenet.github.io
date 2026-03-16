@@ -1,3 +1,45 @@
 title: Scanthenet
-description: Blog de ciberseguridad
+description: Blog de ciberseguridad ofensiva — walkthroughs de HTB, labs propios y técnicas de red team.
+baseurl: ""
+url: "https://scanthenet.github.io"
+
 theme: minima
+
+author:
+  name: Scanthenet
+
+# SEO
+lang: es
+twitter:
+  username: scanthenet
+  card: summary
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Navegación
+header_pages:
+  - htb.md
+  - labs.md
+  - about.md
+
+# Excerpts
+excerpt_separator: "<!--more-->"
+
+# Build
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    css_class: 'highlight'
+
+# Excluir
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - README.md
