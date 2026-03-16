@@ -42,7 +42,7 @@ Ahora bien, si nos encontramos frente a una herramienta archivada, por que hablo
 
  https://www.kali.org/blog/empire-starkiller/
 
-
+![Empire](/assets/img/2021/05/1.png)
 
 Como funciona Powershell-Empire:
 
@@ -71,7 +71,7 @@ Prueba de concepto:
 Bien ahora si que vamos a entrar en materia, para ello comenzamos por levantar el servidor Apache de nuestro Kali:
 
 
-
+![Empire](/assets/img/2021/05/1000.png)
 
 
 
@@ -79,11 +79,11 @@ Bien ahora si que vamos a entrar en materia, para ello comenzamos por levantar e
 Ya con el servidor arriba, procedemos a lanzar el framework:
 
 
+![Empire](/assets/img/2021/05/1002.png)
 
 
 
-
-
+![Empire](/assets/img/2021/05/1003.png)
 
 
 
@@ -93,7 +93,7 @@ Como se puede observar, tras la carga inicial, se nos muestra información sobre
 
 
 
-
+![Empire](/assets/img/2021/05/1009.png)
 
 
 
@@ -104,7 +104,7 @@ Regresamos a Empire y entramos en harina, usamos un listener, existen varios, pe
 
 
 
-
+![Empire](/assets/img/2021/05/1010.png)
 
 
 
@@ -116,19 +116,19 @@ Como podemos ver, Empire funciona muy similar a metasploit, asi que no se nos de
 
 
 
-
+![Empire](/assets/img/2021/05/1011.png)
 
 
 
 Ahora le toca el turno al stager, vamos a crear un archivo.bat , este archivo creara una ventana de powershell no interactiva, el codigo cargado creara la conexion en busca de nuestro listener, una vez encontrado tendremos el agente listo par funcionar. Su carga no es inmediata, puesto que debemos esperar a que el listener prepare las ordenes mientras el agente realiza conexiones no continuas. 
 
-
+![Empire](/assets/img/2021/05/1012.png)
 
 solicitamos usar el stager mediante la orden usestager mas el stager que queremos usar, en nuestro caso 'usestager windows/launcher_bat', en la opcion Listener debemos introducir el nombre del listener activo y una vez configurado los parámetros ejecutamos con 'execute'. Recibimos el aviso de creación y la ruta de guardado:
 
 
 
-
+![Empire](/assets/img/2021/05/1013.png)
 
 
 
@@ -137,7 +137,7 @@ Movemos nuestro archivo a la ruta de archivo compartido de nuestro apache:
 
 
 
-
+![Empire](/assets/img/2021/05/1014.png)
 
 
 
@@ -148,14 +148,14 @@ Es el momento de regresar a nuestra sesión de meterpreter y lanzamos la orden d
 
 
 
-
+![Empire](/assets/img/2021/05/1015.png)
 
 
 
 comprobamos que nuestro agente se encuentra cargado y activo, con el comando 'agents' es importante visualizarlo, porque necesitamos el nombre del mismo en el ultimo paso:
 
 
-
+![Empire](/assets/img/2021/05/1016.png)
 
 
 
@@ -164,7 +164,7 @@ Ahora solo nos queda configurar nuestro modulo, para ello usaremos el comando 'u
 
 
 
-
+![Empire](/assets/img/2021/05/1017.1.png)
 
 
 
@@ -172,7 +172,7 @@ Seteamos los parámetros que necesitemos y ponemos lo que queramos que aparezca 
 
 
 
-
+![Empire](/assets/img/2021/05/1017.png)
 
 
 
@@ -182,7 +182,7 @@ Seteamos los parámetros que necesitemos y ponemos lo que queramos que aparezca 
 
 si todo a marchado correctamente, podemos ver que aparece la ventana de PowerShell con el aviso que hemos escrito.
 
-
+![Empire](/assets/img/2021/05/1018.png)
 
 Pues esto es todo, os dejo referencias para mas info:
 
