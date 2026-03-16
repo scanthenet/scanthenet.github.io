@@ -12,7 +12,7 @@ Hoy os traigo un framework mas que conocido en el mundo del pentesting, una de e
 
 
 
-
+![Empire](/assets/img/2021/05/1.1.png)
 
 
 
