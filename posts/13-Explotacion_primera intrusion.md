@@ -1,0 +1,316 @@
+---
+layout: post
+title: "Explotacion de un objetivo: Primera intrusion"
+date: 2022-02-07
+categories: [Explotacion]
+tags: [explotacion, intrusion, metodologia, pentest]
+excerpt: "Primera intrusión en un objetivo: fases, herramientas y técnicas de explotación inicial."
+---
+
+
+Introducción:
+
+
+
+Una vez obtenemos nuestro prompt en un equipo vulnerado y, tras una larga exhalación mientras nos recostamos en el sillón con mezcla de emoción y cansancio, volvemos a posar nuestra mirada en el bloque parpadeante y pensamos \"Bueno....y ¿ahora qué?\". Pues ahora ha llegado el momento en el cual debemos de seguir ciertos pasos al más puro estilo marcial, consciente de nuestra delicada situación dentro del sistema. 
+
+
+
+Primero debemos recolectar información adicional tanto del equipo, como del entorno en el que se encuentra. Seguidamente procederemos a una escalada de privilegios  si el usuario obtenido es de perfil bajo (que suele ser lo habitual), puesto que el titulo de \"root, dueño y señor de las maquinas\", en ocasiones, es más complicado de obtener que en otras. Llegados a este punto, independientemente del gusto del orden a seguir por parte del pentester para continuar, bajo mi punto de vista, el siguiente paso es conseguir el mantenimiento de acceso (ya sea mediante backdoor, ejecución de servicios ocultos, creación de usuario,etc..). ¿ Por qué lo veo así? Pues la respuesta es bien sencilla. En el caso de cometer un error a la hora de pivotar, me garantizo volver al punto anterior al error (de igual modo que en un videojuego cuando sabes que la cosa se pondrá chunga, le das a guardar partida no sea que la casques y tengas que comerte todo el nivel nuevamente). Una vez realizado el paso anterior,  echaremos mano de la siempre útil recolección de datos. De esta manera podremos hacernos a la idea del mapa de red, obteniendo quizás otros equipos residentes en distintos segmentos y, si es el caso, realizaremos Movimiento lateral o Pivoting. Es importante recolectar información de cada equipo sobre el que pivotamos. Con toda la información recolectada de los distintos equipos realizaremos una fuga de datos.
+
+
+
+Los comandos que usaremos son propios del sistema. Cabe destacar que usaremos tanto los comandos que automatizan la impresión de los resultados, como la lectura de directorios. De esto ultimo, usaremos los directorios /etc/ y /proc/. Vamos a ver una breve descripción de ambos para entender un poco del por qué buscamos en ellos.
+
+
+
+***Directorio /proc/: El kernel de Linux tiene dos funciones primarias: controlar el acceso a los dispositivos físicos del ordenador y establecer cuándo y cómo los procesos interactuarán con estos dispositivos. El directorio /proc/ — también llamado el sistema de archivos proc — contiene una jerarquía de archivos especiales que representan el estado actual del kernel — permitiendo a las aplicaciones y usuarios mirar detenidamente en la vista del kernel del sistema. Dentro del directorio /proc/, se puede encontrar una gran cantidad de información con detalles sobre el hardware del sistema y cualquier proceso que se esté ejecutando actualmente. Además, algunos de los archivos dentro del árbol de directorios /proc/ pueden ser manipulados por los usuarios y aplicaciones para comunicar al kernel cambios en la configuración.***
+
+
+
+***Directorio /etc/:Es el encargado de almacenar los archivos de configuración tanto a nivel de componentes del sistema operativo en sí, como de los programas y aplicaciones instaladas a posteriori. Es un directorio que debería contener únicamente ficheros de configuración, y no debería contener binarios***
+
+
+
+CONEXIÓN AL EQUIPO VÍCTIMA:
+
+
+
+Encontramos el equipo víctima con un escaneo de puertos. Existen varias herramientas para detectar equipos en una red , como netdiscover o nmap entre otros.
+
+
+
+Usando Nmap:
+
+
+
+
+
+
+
+Usando Netdiscover:
+
+
+
+
+
+
+
+Vemos que solo tiene disponible un puerto abierto, pero da la casualidad que el usuario tenía la contraseña apuntada en un papel bajo el pie de la pantalla, así que procedemos a la conexión
+
+
+
+
+
+
+
+
+
+
+
+INFORMACIÓN DEL SISTEMA / RED:
+
+
+
+Nombre del host: aunque parezca obvio (y en este caso en particular, lo es) debemos corroborar el nombre del equipo vulnerado.
+
+
+
+
+
+
+
+Hosts conocidos y direcciones IP:  la ausencia de otros hosts, no indica que no existan otros equipos en la red que interactúen con él, pero podríamos sacar provecho de la información que el archivo contiene, y es mejor no pasarlo por alto. Para el caso de este artículo, vamos a poner dos capturas, la primera donde no existe hosts asociados y en la segunda captura sí. ¿A qué se debe esto? Para poder visualizar contenido de algunas direcciones, se necesita asociar el host, pero repito, que en el caso del actual artículo, es para hacernos a una idea de la información valiosa que podemos obtener.
+
+
+
+
+
+
+
+De la lectura de este archivo,podemos discernir la posible existencia de otros segmentos de red dentro del sistema. Saldremos de dudas un poco más adelante.
+
+
+
+Versión del kernel y la arquitectura del sistema: Ambos comandos son válidos pero si tenemos la posibilidad de ejecución de cat /proc/version, mejor usar este último puesto que arroja más información.
+
+
+
+
+
+
+
+Sistema Operativo: 
+
+
+
+
+
+
+
+Listado de Archivos abiertos: Podemos observar como existen archivos y procedimientos con un nivel superior al nuestro. Por ahora no debe preocuparnos, puesto que pronto escalaremos privilegios y \"todo lo que nos es denegado sera de nuestra propiedad\". (una sonrisa perfilada, se dibuja en nuestro rostro)
+
+
+
+
+
+
+
+
+
+
+
+Comenzamos con la recolección de información de la red, donde nos podremos hacer una idea de la estructura de red en ese nivel.
+
+
+
+Interfaz de red:  Probamos tres comandos distintos. El motivo es porque en la versiones actuales de algunos sistemas operativos Linux el comando ifconfig no es valido por defecto, siendo ip address el comando por defecto (sea el caso de debian 11 o kali linux, entre otros) en los tres casos ofrecen casi los mismos datos, puesto que mientras ifconfig imprime dos interfaces, ip address e ip addr show muestran tres. Podemos ver que la interfaz ens37 tiene una ip asignada distinta a la obtenida mediante el escaneo de puertos. Esto nos debe de alertar de que \"algo huele a podrido en Dinamarca\", como dijo Hamlet. Nos encontramos ante otra subred dentro de la red.
+
+
+
+
+
+
+
+
+
+
+
+Información de enrutamiento: Con este comando veremos las rutas de red existentes. Además, si la información mostrase asteriscos, indicaría la posible existencia de algún tipo de firewall o dispositivo cifrado. La flecha roja corrobora la existencia de otra subred, como nos mostraba el comando anterior.
+
+
+
+
+
+
+
+Conexiones de red actuales TCP y UDP: Vemos los puertos vivos y la existencia de conexiones establecidas. Aquí podemos ver nuestra conexión con el objetivo.
+
+
+
+
+
+
+
+También podemos hacer uso del comando ss -twurp, para ver las conexiones.
+
+
+
+
+
+
+
+Ver las IPSEC de seguridad VPN: Para esta función debemos ejecutar sudo. Si el host tiene configurada conexiones VPN nos mostrará el listado de claves y el estado de las conexiones.
+
+
+
+
+
+
+
+Estado del Firewall: 
+
+
+
+
+
+
+
+Reglas de iptables: Obtendremos información de las reglas configuradas en el equipo.
+
+
+
+
+
+
+
+Tabla ARP: Veremos la información de los protocolos de resolución de direcciones.
+
+
+
+
+
+
+
+Archivos del sistema montados: Lanzamos dos comandos. En el primero vemos los archivos con información sobre tamaño, cantidad usada y ruta de montaje. En el segundo podemos ver las rutas, los permisos y grupos y usuarios de los mismos.
+
+
+
+
+
+
+
+
+
+
+
+Módulos cargados de kernel: se puede recopilar información de los módulos cargados, el tamaño y quién hace uso de cada módulo.
+
+
+
+
+
+
+
+Buses y dispositivos del sistema: Imprime listas con información detallada sobre todos los buses y dispositivos del sistema. Se basa en una biblioteca portátil, libpci que ofrece acceso al espacio de configuración PCI de sistema operativo.
+
+
+
+
+
+
+
+Servicios USB: es conveniente saber qué servicios USB se encuentran en el equipo. Quizás un USB se encuentre conectado con información sensible y podamos avanzar en nuestra intrusión.
+
+
+
+
+
+
+
+Información de la CPU: vamos a pedir que nos imprima una lista bastante detallada de la CPU.
+
+
+
+
+
+
+
+Información de la MEMORIA: imprimimos la información de la memoria. Podemos ver cuanto ocupa cada espacio designado.
+
+
+
+
+
+
+
+Información del Hardware: lshw (significa Hardware Lister) es una pequeña herramienta ingeniosa que genera informes detallados sobre varios componentes de hardware del ordenador como configuración de memoria, versión de firmware, configuración de placa base, versión y velocidad de CPU, configuración de caché, usb, tarjeta de red, tarjetas gráficas, multimedia, impresoras, velocidad de bus, etc.
+
+
+
+La herramienta genera información de hardware mediante la lectura de varios archivos bajo el directorio /proc y la tabla DMI. lshw debe ejecutarse como superusuario. Esto dependerá en gran medida, si tenemos disponible la invocación de sudo para detectar la cantidad máxima de información o solo informará información parcial (en el caso de este artículo, el comando ejecutado como usuario o mediante superusuario arroja  la misma información). La opción especial está disponible en la clase lshw llamada class, que muestra la información específica del hardware de forma detallada.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Información de los mensajes del Kernel:  dmesg (diagnostic message, mensajes de diagnóstico) es un comando presente en los sistemas operativos Unix que lista el buffer de mensajes del núcleo. Este buffer contiene una gran variedad de mensajes importantes generados durante el arranque del sistema y durante la depuración de aplicaciones.»
+
+
+
+Traduciendo un poco esto, con dmesg podemos obtener (usando nuestra terminal) la información de arranque de nuestro sistema entre otros datos, mensajes del núcleo (kernel) y utilizar esta información para detectar posibles errores de nuestro sistema y del Hardware.
+
+
+
+
+
+
+
+
+
+
+
+Espero que les haya gustado el artículo. En breve continuaremos con la recopilación de información de usuarios existentes en el host vulnerado.
+
+
+
+Un saludo y Happy hack!!
+
+
+
+REFERENCIAS:
+
+
+
+
+https://soyadmin.com/que-hace-y-como-se-usa-el-comando-dmesg-para-verificar-errores/
+
+
+
+
+
+https://esgeeks.com/lshw-ver-informacion-hardware-linux/
+
+
+
+
+https://web.mit.edu/rhel-doc/4/RH-DOCS/rhel-rg-es-4/ch-proc.html
+
+
+
+http://www.linfo.org/dmesg.html
+','Post-Explotación: Recolección adicional información. (Parte 1:Información del sistema/red)','

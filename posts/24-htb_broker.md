@@ -1,0 +1,327 @@
+---
+layout: post
+title: "HTB: Broker"
+date: 2024-03-24
+categories: [HTB]
+tags: [htb, linux, easy, activemq, cve]
+difficulty: Easy
+excerpt: "Walkthrough de HTB Broker: explotación de ActiveMQ (CVE-2023-46604) y escalada con nginx."
+---
+
+
+Recolección de información:
+
+
+
+Comenzaremos con el escaneo de puertos, podemos ver que se trata de una máquina con SO Linux y varias versiones de servicios que nos llaman la atención, como es el de HTTP Jetty 9.4.39.v20210325 , el STOMP Apache ActiveMQ y apachemq ActiveMQ OpenWire transport. Veamos de qué se tratan:
+
+
+
+
+
+
+
+ Servicio \"http\" Jetty :
+
+
+
+\"Aunque su función principal es la de un servidor web, también actúa como un contenedor de servlets, lo que lo convierte en una herramienta valiosa para aplicaciones Java basadas en web.\"
+
+
+
+Servicio \"stomp\" Apache ActiveMQ :
+
+
+
+\"Apache ActiveMQ® es el intermediario de mensajes basado en Java, multiprotocolo y de código abierto más popular. Admite protocolos estándar de la industria para que los usuarios obtengan los beneficios de las opciones del cliente en una amplia gama de idiomas y plataformas. Conéctese desde clientes escritos en JavaScript, C, C++, Python, .Net y más. Integre sus aplicaciones multiplataforma utilizando el omnipresente protocolo AMQP. Intercambie mensajes entre sus aplicaciones web usando STOMP sobre websockets. Administre sus dispositivos IoT usando MQTT. Respalde su infraestructura JMS existente y más allá. ActiveMQ ofrece el poder y la flexibilidad para admitir cualquier caso de uso de mensajería.\" Es un sencillo protocolo diseñado para la comunicación asíncrona entre clientes a través de un mediador de mensajes (en nuestro caso, ActiveMQ). El protocolo está basado en frames. Los frames no son más que un&nbsp;comando&nbsp;(u operación), un&nbsp;mensaje&nbsp;(o body) y unas&nbsp;cabeceras&nbsp;del mensaje (headers). Se compone de una serie de operaciones (comandos) para la interacción entre cliente e intermediario de mensajes. A nosotros únicamente nos harán falta cuatro de estas operaciones. Connect: Establece conexión con el broker de mensajería. Subscribe: El cliente se suscribe a un destino del broker (una cola o un topic). Send: El cliente envía un mensaje a un destino del broker (cola o topic). Disconnect: Cierra la conexión con el broker de mensajería.
+
+
+
+Creo que me quedare con la siguiente explicación de STOMP&nbsp;(Simple Text Oriented Protocol) . \"Es un protocolo de Mensajería Orientado a Texto Simple. Es simple y fácil de implementar, proveniente de la escuela de diseño HTTP.\"
+
+
+
+Servicio  \"apachemq\" ActiveMQ OpenWire transport :
+
+
+
+\"OpenWire es nuestro protocolo Wire en varios idiomas para permitir el acceso nativo a ActiveMQ Classic desde varios idiomas y plataformas diferentes. El transporte Java OpenWire es el transporte predeterminado en ActiveMQ Classic 4.x o posterior, NMS para la API de C# para Mensajería y la implementación de OpenWire en C# CMS para la API de C++ para mensajería y la implementación de OpenWire en C++. Tenga en cuenta que también puede usar STOMP para acceder a ActiveMQ Classic desde muchos lenguajes diferentes, así como usar GCJ o IKVM para acceder al código Java para ActiveMQ Classic desde C/C++ o .Net respectivamente sin usar OpenWire.\"
+
+
+
+Análisis de vulnerabilidades:
+
+
+
+Es sobre este último servicio por el que comenzamos a buscar vulnerabilidades debido a que su trabajo es permitir el acceso nativo desde varios idiomas, tal como acabamos de explicar.
+
+
+
+
+
+
+
+Si buscamos información en su página oficial nos da una pista del tipo de vulnerabilidad que explotaremos, la autorización por defecto usando un archivo simple de configuración XML.
+
+
+
+
+
+
+
+Vulnerabilidad en Apache ActiveMQ (CVE-2023-46604):
+
+
+
+\"Apache ActiveMQ es vulnerable a la ejecución remota de código. La vulnerabilidad puede permitir que un atacante remoto con acceso a la red de un corredor ejecute comandos de shell arbitrarios manipulando tipos de clases serializadas en el protocolo OpenWire para hacer que el corredor cree una instancia de cualquier clase en el classpath.\"
+
+
+
+
+
+
+
+Explotación:
+
+
+
+Si observamos el funcionamiento del exploit, vemos que efectivamente cargaremos a través de nuestro servidor local un archivo de configuración XML modificado. Dicho archivo contiene la orden de carga, modificación y ejecución de un exploit previamente creado y la espera en nuestro directorio del servidor. 
+
+
+
+
+
+
+
+Preparamos el exploit y ponemos a la escucha nuestro listener.
+
+
+
+
+
+
+
+
+
+
+
+Descargamos el exploit desde su repositorio y ejecutamos (recordad que esta creado en go), vemos los parámetros necesarios para ser explotado.
+
+
+
+
+
+
+
+Editamos el archivo de configuración por defecto de Apache ActiveMQ en formato XML e introducimos nuestra ruta para que apunte a nuestro exploit, lo modifique para su ejecución y lo ejecute.
+
+
+
+
+
+
+
+Con el XML malicioso configurado, lanzamos el exploit.
+
+
+
+
+
+
+
+El archivo es enviado correctamente y ejecutado.
+
+
+
+
+
+
+
+Ya tenemos nuestra primera shell!!!
+
+
+
+
+
+
+
+Buscamos la flag de usuario y la cogemos!!
+
+
+
+
+
+
+
+Escalada de privilegios:
+
+
+
+Ejecutamos el comando sudo -l (pido disculpas por el recorte de la captura) y vemos que podemos ejecutar un binario de nombre nginx. Ejecutamos el mismo y vemos que se trata de un servidor que trabaja en local. Observamos las opciones y nos da como parámetro -c la posibilidad de cargar un archivo desde una ruta siendo la ruta y archivo por defecto /etc/nginx/nginx.conf .
+
+
+
+
+
+
+
+Leemos el archivo nginx.conf y en él se incluyen dos archivos con sus rutas, continuemos la búsqueda.
+
+
+
+
+
+
+
+El primero dice que no existe y el segundo es el archivo de configuración de conexión para el servidor admin.broker.htb. Un subdominio, y de nombre \"admin\" ni más ni menos, esto puede ser la llave.
+
+
+
+
+
+
+
+
+
+
+
+Añadimos el subdominio a nuestro archivo /etc/hosts para resolver la dirección.
+
+
+
+
+
+
+
+Maldita sea!!! protegida con usuario/contraseña, lo guardaremos como vector de ataque para fuerza bruta. 
+
+
+
+
+
+
+
+
+
+
+
+Probamos con la edición del  archivo de configuración del servidor pero no podemos.
+
+
+
+
+
+
+
+Bien, pues intentemos extraerlo con curl a nuestra máquina, tampoco nos deja. Maldita sea, echemos mano de la artillería pesada para ver que obtenemos de interés. Es el momento de Linpeas
+
+
+
+
+
+
+
+
+
+
+
+Como casi siempre cargaremos y ejecutaremos el binario en el directorio /tmp, esta herramienta nos ayuda en la búsqueda de información de posibles vulnerabilidades de forma automatizada, cosa que nos ahorra tiempo....mucho tiempo, de búsqueda de un vector de ataque válido.
+
+
+
+
+
+
+
+OJO!! tenemos disponible un directorio donde podemos escribir. No hemos sacado captura de la información del archivo pero es propiedad de root
+
+
+
+
+
+
+
+Por lo tanto si podemos cargar un archivo .conf con los datos de root y un puerto a la escucha válido podríamos realizar un puenteo y conectar con quien se encuentre al otro lado. 
+
+
+
+Primero observamos las conexiones disponibles de nuestra víctima, tiene disponible localhost:1337
+
+
+
+
+
+
+
+Creamos y configuramos el archivo .conf en nuestra máquina y lo enviamos al directorio con permiso de escritura con curl desde la máquina objetivo.
+
+
+
+
+
+
+
+
+
+
+
+Lanzamos el servidor nginx incluyendo el path con nuestro archivo .conf de conexión y tras su carga usaremos curl a modo de shell (más o menos), puesto que cada solicitud nos devuelve la información solicitada con privilegios root. Para saber si hemos tenido éxito basta con enviar la solicitud de recibir el contenido del archivo /etc/shadow. Sabemos que este archivo contiene los hash de los usuarios y solo pueden ser vistos por root si esta bien configurado.
+
+
+
+
+
+
+
+Bien pues comenzamos la búsqueda de la flag de root viendo que directorios tenemos disponibles.
+
+
+
+
+
+
+
+Solicitamos la información del directorio /root y tenemos un binario \"cleanup.sh\" y nuestra flag.
+
+
+
+
+
+
+
+Tan solo resta pedirle la información del archivo....!YA LA TENEMOS!
+
+
+
+
+
+
+
+Happy Hacking!!
+
+
+
+Referencias:
+
+
+
+https://keepcoding.io/blog/que-es-jetty-en-java-y-como-implementarlo/
+
+
+
+https://activemq.apache.org/components/classic/documentation/security
+
+
+
+
+https://www.drouiz.com/blog/2018/09/05/stomp-js-vs-websocket/
+
+
+
+
+https://github.com/SaumyajeetDas/CVE-2023-46604-RCE-Reverse-Shell-Apache-ActiveMQ
+
+
+
+
+','Bróker','

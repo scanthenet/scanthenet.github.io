@@ -1,0 +1,109 @@
+---
+layout: post
+title: "Recoleccion de Informacion: Alias"
+date: 2021-09-14
+categories: [OSINT]
+tags: [osint, recoleccion, alias, whatsmyname]
+excerpt: "Uso de WhatsMyName para localizar alias y perfiles de un objetivo en múltiples plataformas."
+---
+
+
+
+
+Durante el proceso de recolección de datos debemos hacernos con cantidades ingentes de información, claro está, uno de los aspectos a tener en cuenta son los perfiles de usuario que una persona implicada en una auditoría puede tener en diferentes plataformas. Damos por sentado que comprobar esta información manualmente nos comería el tiempo de dos vidas, y como solo tenemos una vida y encima es corta, disponemos de herramientas automatizadas que nos ayudarán escaneando usuarios entre las principales webs.
+
+
+
+Para el artículo de hoy veremos WhatsMyName, una herramienta OSINT, escrita en python3 y que cumple con lo que se le pide a toda buena herramienta que se precie, que sea configurable, rápida y sencilla de usar. Está disponible en GitHub.
+
+
+
+
+
+
+
+Una vez clonada y tras seguir los pasos de instalación que se detallan en GitHub, se nos creará un directorio en la ruta especificada por nosotros.
+
+
+
+
+
+
+
+En dicho directorio, podemos observar que disponemos de dos archivos ejecutables en python3 y un archivo escrito en json.  Es este archivo, el que será configurado por nosotros para adecuarlo a nuestras necesidades de búsqueda:
+
+
+
+Escritura del archivo web_accounts_list.json
+
+
+
+Tras configurar las webs a escanear, procederemos a entrar en materia. Como buenas prácticas, lo mejor es leer su uso previo, el cual esta disponible en su GitHub, y luego proceder a lanzar la ayuda de la herramienta. Podemos ver que el uso es sencillo:
+
+
+
+
+
+
+
+Después de lanzar la herramienta comenzará con el escaneado de las webs listadas del archivo Java. Lógicamente el proceso de chequeo tarda un poco, ya que debe de comprobar la conexión correcta de la web y el usuario. Durante el proceso se mostrará los mensajes de la no existencia del usuario en el color de la fuente de nuestra máquina, error de implementación de la web en rojo, usuario no válido en naranja y la existencia del usuario en una web en verde.
+
+
+
+
+
+
+
+
+
+
+
+Cuando termine el proceso nos avisa del la finalización del proceso con la cantidad de los sitios encontrados y errores:
+
+
+
+
+
+
+
+Ahora tan solo resta comprobar las direcciones en busca de información de la persona, en el caso de este PoC, he usado mi perfil personal, vamos a ver que sacamos en claro:
+
+
+
+Vemos que se puede obtener información de por donde se mueve a través de su conexión a una plataforma de deportes, que su reloj es de una marca determinada y que tiene instalada una aplicación con una versión determinada.
+
+
+
+Tiene una cuenta en GitHub y que usa un Nick que podríamos usarlo en posteriores búsquedas.
+
+
+
+Además sacamos una cuenta de Instagram.
+
+
+
+Como hemos podido, ver en pocos minutos hemos recolectado información valiosa de una persona: su nombre de pila, lugares de movimiento y cuentas en RR.SS.
+
+
+
+Bien, podemos realizar una búsqueda más rápida y sin mostrar errores con el siguiente comando: 
+
+
+
+
+
+
+
+Mediante la elección de esta herramienta evitamos los mensajes de error y nos muestra las webs en un listado final:
+
+
+
+
+
+
+
+Sin duda es una herramienta que nos facilita mucho la búsqueda de información, y como bien es sabido... \"La Información es poder\".
+
+
+
+Un saludo y Happy hacking!!

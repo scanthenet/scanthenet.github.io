@@ -1,0 +1,365 @@
+---
+layout: post
+title: "HTB: Wifinetic"
+date: 2024-04-01
+categories: [HTB]
+tags: [htb, linux, easy, wifi, wps]
+difficulty: Easy
+excerpt: "Walkthrough de HTB Wifinetic: ataque a red WiFi con WPS y escalada de privilegios en Linux."
+---
+
+
+Recolección de información:
+
+
+
+Como siempre comenzamos nuestra recolección de información haciendo uso de nmap. Con esta herramienta obtenemos una visión inicial y general del entorno por el que nos moveremos.  Tenemos el puerto 21,22 y 53 abiertos, comprobemos que servicios corren por ellos y la versión correspondiente de los mismos. 
+
+
+
+Pues en esta máquina nos encontramos algo muy inusual, y es que tenemos el puerto 21 con el servicio FTP cargadito de archivos y con el logeo anónimo permitido. Es como un sueño hecho realidad. También tenemos el puerto 22 con el servicio SSH disponible y el puerto 53 filtrado por cortafuegos.
+
+
+
+
+
+
+
+Accedemos al servicio FTP y descargamos los archivos a nuestra máquina. Ahora es momento de tomarse un café mientras recolectamos información que nos oriente hacia alguna vulnerabilidad conocida y si no es así, nos deje al descubierto información sensible, tales como user/pass, hashes, etc...
+
+
+
+
+
+
+
+
+
+
+
+Comenzamos con energía husmeando los archivos....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Pero poco a poco vamos perdiendo fuelle.....entonces encontramos el archivo passwd.
+
+
+
+
+
+
+
+En el archivo profile, encontramos un aviso que nos dice que el password de root no está definido para el servicio. Esto puede ser de utilidad más adelante.
+
+
+
+
+
+
+
+Tambien encontramos el certificado y la key de uhttpd.
+
+
+
+
+
+
+
+\"La configuración /etc/config/uhttpd la proporciona el paquete del servidor web uhttpd. Este archivo define el comportamiento del servidor y los valores predeterminados para los certificados generados para la operación SSL. uhttpd admite múltiples instancias (es decir, múltiples puertos de escucha, cada uno con su propia raíz de documento y otras características), así como cgi, php7, perl y lua.\"
+
+
+
+\"uHTTPd está configurado para ser la interfaz web predeterminada de LuCI para OpenWrt. Es un servidor web escrito para ser un servidor eficiente y estable, adecuado para tareas livianas comúnmente utilizadas con dispositivos integrados y una integración adecuada con el marco de configuración de OpenWrt (UCI). Además, proporciona todas las funciones que se esperan de los servidores web actuales.\"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Estas averiguaciones nos conduce a buscar informacion sobre OpenWrt, de que se trata? 
+
+
+
+\"El proyecto OpenWrt es un sistema operativo Linux dirigido a dispositivos integrados. En lugar de intentar crear un firmware estático único, OpenWrt proporciona un sistema de archivos totalmente grabable con administración de paquetes. Esto lo libera de la selección y configuración de aplicaciones proporcionadas por el proveedor y le permite personalizar el dispositivo mediante el uso de paquetes que se adaptan a cualquier aplicación. Para los desarrolladores, OpenWrt es el marco para crear una aplicación sin tener que crear un firmware completo a su alrededor; Para los usuarios, esto significa la posibilidad de una personalización total y de utilizar el dispositivo de formas nunca imaginadas.\"
+
+
+
+
+
+
+
+
+
+
+
+Pues al parecer estamos recolectando información sobre el sistema operativo de un enrutador. Ante la ingente cantidad de posibilidades de búsqueda, optamos por priorizar estas en base a palabras claves.
+
+
+
+
+
+
+
+
+
+
+
+OJO!! acabamos de encontrar la clave de conexion para una red WI-FI.
+
+
+
+
+
+
+
+
+
+
+
+Aquí vemos que los certificados encontrados se encuentran dentro del archivo principal de configuración del servidor.
+
+
+
+
+
+
+
+Tambien damos con la clave publica, pero se encuentra cifrada y no podemos decodificarla.
+
+
+
+
+
+
+
+
+
+
+
+La version 22.03 configura las conexiones hacia el corta fuegos, y es por este motivo por el que no podemos acceder al servidor via web.
+
+
+
+
+
+
+
+
+
+
+
+Análisis de vulnerabilidades:
+
+
+
+Hasta el momento hemos sacado bastante información en claro de los documentos descargados,en sí, no vamos a explotar una vulnerabilidad causada por un error de software o hardware, estamos ante una fuga de datos como consecuencia de una mala configuración de los archivos del sistema. Los archivos de configuración del servidor están disponibles para su descarga y visualizacion desde el directorio raíz FTP. No es una vulnerabilidad CVE, si no más bien, un error en la configuración de permisos a los servicios del sistema, el LOGEO ANÓNIMO \"permitido\" del servicio FTP del sistema es un error grave en la seguridad. 
+
+
+
+Si ojeamos el archivo passwd encontramos dos usuarios con directorio /home, lo que nos hace pensar que son usuarios logueados en el sistema. Además, si revisamos el archivo /wireless,  obtenemos una clave en claro, aprovechemos estos datos para explotar el sistema.
+
+
+
+
+
+
+
+
+
+
+
+Explotación:
+
+
+
+Nos dirigimos a logearnos via SSH e introducimos las credenciales, DING-DONG!! tenemos acceso.
+
+
+
+
+
+
+
+Tras listar directorios y comprobar donde nos encontramos, buscamos la flag de usuario.
+
+
+
+
+
+
+
+DING-DONG!! nuevamente suena la campana, podemos continuar con la siguiente fase. 
+
+
+
+Escalada de privilegios:
+
+
+
+Introducimos el comando sudo -l para averiguar si podemos ejecutar algún archivo con permisos root, pero no tenemos suerte.
+
+
+
+
+
+
+
+En esta ocasion no nos lo pensamos y hacemos uso de linpeas.
+
+
+
+
+
+
+
+
+
+
+
+En esta máquina nos encontramos con el siguiente problema, el archivo es copiado en el path seleccionado doblemente (en nuestro caso queremos que ejecute en /tmp ), precisamente es el segundo de ellos (.sh.1) el que se ejecuta sín problemas.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tras la ejecución de Linpeas, intentamos la lectura de un binario disponible pero no tenemos permisos.
+
+
+
+
+
+
+
+Nuevamente y recordando que hemos encontrado los archivos de configuración de un servidor nos interesamos primeramente por la configuración de red.
+
+
+
+
+
+
+
+En una primera revisión de la información recibida de Linpeas, no vemos nada interesante, pero si hacemos uso del comando iwconfig obtenemos un punto de acceso (AP), con una dirección Mac asociada, veamos de que se trata dicha dirección Mac.
+
+
+
+
+
+
+
+Estas direcciones Mac se utilizan para la comunicación de red interna, por lo tanto tenemos disponible un punto de acceso genérico de una red, esto lo podemos usar para conectarnos a los dispositivos existentes en dicha red. 
+
+
+
+
+
+
+
+Necesitamos saber que herramientas WI-FI tiene instalado el equipo víctima, para ello hacemos búsquedas de herramientas instaladas.
+
+
+
+
+
+
+
+
+
+
+
+Hemos encontrado Reaver instalado en el equipo. Veamos en que nos va ayudar.
+
+
+
+
+
+
+
+\"Reaver realiza un ataque de fuerza bruta contra el número pin de configuración protegida Wi-Fi de un punto de acceso. Una vez que se encuentra el pin WPS, se puede recuperar el WPA PSK y, alternativamente, se pueden reconfigurar las configuraciones inalámbricas del AP. Este paquete también proporciona el ejecutable Wash, una utilidad para identificar puntos de acceso habilitados para WPS.\"
+
+
+
+
+
+
+
+Configuramos la herramienta y la lanzamos, no tardamos en ver como encuentra el pin WPS y la clave WPA PSA ademas del nombre SSID.
+
+
+
+
+
+
+
+Con  estas nuevas credenciales intentamos el logeo de root... 
+
+
+
+
+
+
+
+DING-DONG!! tenemos acceso, busquemos la flag de root.
+
+
+
+
+
+
+
+Happy Hacking!!
+
+
+
+Referencias:
+
+
+
+https://portswigger.net/web-security/information-disclosure
+
+
+
+https://openwrt.org/es/docs/start
+
+
+
+https://www.juniper.net/documentation/mx/es/software/junos/evpn-vxlan/topics/concept/evpn-vxlan-mac-virtual-gateway.html#:~:text=El%20rango%20de%20direcciones%20MAC,expl%C3%ADcitamente%20una%20direcci%C3%B3n%20MAC%20virtual.
+
+
+
+https://www.kali.org/tools/reaver/
+
+
+
+
+','Wifinetic','

@@ -1,0 +1,260 @@
+---
+layout: post
+title: "Recoleccion de informacion en sistema Linux"
+date: 2022-02-16
+categories: [Recoleccion]
+tags: [linux, reconocimiento, enumeracion, recoleccion]
+excerpt: "Recolección de información en sistemas Linux: comandos, rutas y datos clave para el atacante."
+---
+
+
+Continuamos para bingo con la recolección de informacion en sistemas Linux. Es el momento de listar los servicios disponibles en el equipo, dicha informacion nos dirá que és realmente la maquina, que funcion desempeña dentro de la infraestructura y cómo se comporta.
+
+
+
+Listar usuarios, procesos y servicios:
+
+
+
+Lo primero que haremos será listar todos los procesos según criterio del pentester, yo he optado por el comando que podemos observar :
+
+
+
+
+
+
+
+Tanto para la configuración de comando a ejecutar, cómo para el entendimiento de los resultados, bastará que tecleemos en nuestra consola man ps. Esto nos será de gran ayuda para poder realizar una recolección óptima de la máquina.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Podemos ver el estado de los procesos y su correcta interpretación.
+
+
+
+
+
+
+
+Listar herramientas de inicio del sistema:
+
+
+
+init.d, es el primer proceso del sistema Linux. … Así que init.d es una base de datos de configuración para el proceso de inicio.
+
+
+
+/etc/init.d contiene herramientas de inicio. Este es el paquete de administración de servicios tradicional para Linux, que contiene el programa init (el primer proceso que se ejecuta cuando el kernel ha terminado de inicializarse) así como también algo de infraestructura para iniciar y detener servicios y configurarlos.
+
+
+
+
+
+
+
+Listar servicios root:
+
+
+
+Listamos los servicios root y los privilegios de estos. Recordemos que Linux reserva el numero 0 para como ID de root.
+
+
+
+
+
+
+
+Listar el estado de los servicios:
+
+
+
+Veremos impreso el listado de los servicios disponibles y el estado, siendo ( + ) activo , y ( - ) detenido
+
+
+
+
+
+
+
+Información más detallada del servicio:
+
+
+
+Podemos revisar de manera más individualizada los servicios ejecutando el comando que observamos en la captura inferior.
+
+
+
+
+
+
+
+Efectivamente el servidor HTTP se encuentra activo.
+
+
+
+
+
+
+
+Usando systemctl:
+
+
+
+En este apartado realizaremos unas cuantas búsquedas sobre servicios y unidades systemd. ¿Que es systemd? es un sistema init y la par de administrador del mismo, es una gran herramienta para la gestión y administración de servidores. De las opciones disponibles, ejecutaremos el comando systemctl, que és la herramienta principal de control de init.
+
+
+
+Listar todos los archivos de la unidad:
+
+
+
+Comenzaremos con el listado completo de TODOS los archivos de unidad systemd, incluidos los que no se haya intentado cargar, la respuesta impresa es enorme, y solo nos indicará el estado del mismo.
+
+
+
+
+
+
+
+
+
+
+
+Con el comando list-units, listamos las unidades ACTIVAS en systemd. El resultado será la impresión bastante detallada de las unidades, asi como es estado de carga y estatus, además de una breve descripción del mismo.
+
+
+
+
+
+
+
+
+
+
+
+Podemos filtrar los archivos según necesidades, buscando por estado o tipo, como observamos en las capturas inferiores.
+
+
+
+filtrando por estado activo
+
+
+
+filtrado por tipo y estado
+
+
+
+filtrado por estado fallido
+
+
+
+Vemos el potencial de esta herramienta a la hora de agilizar búsquedas, sin duda de uso obligado a la hora de la recolección sobre servicios.
+
+
+
+Directorio /etc/:
+
+
+
+Ahora es momento de chequear los archivos de configuración de las aplicaciones instaladas en  la máquina. Estos archivos se encuentran en el directorio /etc/. Para agilizar y no dar palos de ciego, lo mejor es realizar una impresión del directorio completo, para ello nos desplazaremos al directorio e imprimiremos el listado.
+
+
+
+
+
+
+
+Si queremos listar los archivos.conf que contiene dicho directorio, podemos ejecutar el siguiente comando.
+
+
+
+
+
+
+
+esto nos listara todos los archivos con extension .conf.
+
+
+
+Ver configuración syslog:
+
+
+
+En el caso de la maquina vulnerada, no existe tal archivo de  configuración.
+
+
+
+
+
+
+
+Sin embargo, si obtenemos el archivo de configuración de rsyslog. Entonces, ¿Cuál es la  diferencia entre ambos?.La diferencia radica en la antiguedad de la distribución usada en la maquina.
+
+
+
+
+
+
+
+Ver la configuración de Samba:
+
+
+
+
+
+
+
+Ver la configuración de Apache:
+
+
+
+
+
+
+
+Esta claro que a más información recolectemos, más posibilidades de éxito en las posteriores fases.Ahora bien, si esta fase es de por sí es ardua, sin saber que buscar , se convertirá en una tediosa recopilación de cantidades ingentes de datos donde pasaremos por alto datos de suma importancia y las fases posteriores se convertirán, en el mejor de los casos, en un largo y extenuante calvario.
+
+
+
+Espero que les haya gustado el artículo. Continuaré con el último de esta fase, donde podremos ver la recopilación de datos de trabajos,tareas y versiones de aplicaciones.
+
+
+
+Un saludo y Happy Hack!!
+
+
+
+REFERENCIAS:
+
+
+
+https://www.digitalocean.com/community/tutorials/how-to-use-systemctl-to-manage-systemd-services-and-units-es
+
+
+
+https://likegeeks.com/es/servidor-syslog-de-linux/
+
+
+
+https://debian-handbook.info/browse/es-ES/stable/sect.syslog.html
+
+
+
+https://es.wikipedia.org/wiki/Syslog
+
+
+
+https://www.mundotelematico.com/syslog-rsyslog-syslog-ng-y-journald/
+','Post-Explotación: Recolección adicional información. (Parte 4: Servicios y archivos de configuración)','

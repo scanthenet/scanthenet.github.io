@@ -1,0 +1,208 @@
+---
+layout: post
+title: "ASLR"
+date: 2021-12-18
+categories: [Reversing]
+tags: [reversing, aslr, bypass, exploitdev]
+excerpt: "Address Space Layout Randomization: funcionamiento y técnicas para su evasión."
+---
+
+
+Introducción:
+
+
+
+ASLR…. ¿Eso qué es? Pues bien, ASLR es el acrónimo de su nombre en inglés Address Space Layout Randomization, (asignación aleatoria de espacio de direcciones en español) y está introducida a nivel sistema operativo.
+
+
+
+¿Dónde trabaja? Trabaja sobre la memoria y es una técnica de seguridad informática que evita la corrupción de memoria. Para evitar que un atacante salte de forma fiable, esta contramedida dispone de forma aleatoria las posiciones del espacio de direcciones de las áreas de datos clave de un proceso, incluyendo la base del ejecutable y las posiciones que éste ocupa en la pila, El heap y las librerías.
+
+
+
+Muy bien, y ¿cómo trabaja? Pues fácil, utilizando la entropía en la aleatoriedad, en realidad fácil de explicar no es, pero lo intentaré hacer del modo más sencillo posible. La entropía también llamada como entropía de la información y entropía de Shannon mide la incertidumbre de una fuente de información. Si esto lo trasladamos a la seguridad informática viene a decir que a más cambios se produzca en la información que se arroja menor es la probabilidad de que un atacante acierte con la dirección de destino correcta.
+
+
+
+¿Cuáles son los beneficios de esta técnica? La aleatoriedad del espacio de direcciones entorpece la labor de ciertos ataques contra la seguridad, haciendo más difícil que un atacante pueda predecir las direcciones de destino. Esta técnica es una buena contramedida sobre ataques de retorno a libc e inyección de código Shell en pila. En ambos casos el sistema oculta las direcciones de memoria, puesto que continuamente proporciona distintos espacios de memoria para el mismo proceso.
+
+
+
+¿Entonces es infalible? Por supuesto que no. Como ya sabemos, y más en este mundo, nada está exento de ser vulnerado como veremos a continuación. Aunque existen varias técnicas, las más utilizadas son el abuso de una entropía baja utilizado principalmente en kernel antiguos, ataque por fuerza bruta que consiste en hacer correr múltiples veces el binario local hasta hacernos una aproximación de la dirección qué será aleatorizada, el ataque a las librerías dinámicas y el formateo de cadenas. Exceptuando la primera técnica, usaremos las demás en esta prueba de concepto. Con ellos vamos a obtener información sobre la disposición en la memoria de las direcciones de salida. Las funciones tales como printf utilizan una lista de argumentos variables, los especificadores de formato describen el aspecto de la lista de argumentos y, debido a la manera en que se pasan dichos argumentos, cada especificador de formato se acerca más al tope superior del marco de la pila. Llegado a cierto punto, se puede extraer el puntero de marco EBP y el puntero de pila ESP, revelando así las direcciones de una librería vulnerable y la dirección de un marco de pila conocido esto puede eliminar por completo la entropía y salvar el obstáculo ASLR.
+
+
+
+Vale muy bien, esto parece ultra novedoso así que esta técnica debe existir desde hace poco, ¿no? Pues va a ser que no. El primero en acuñar el término fue Linux en el proyecto PaX y publicó el primer diseño e implementación en julio del 2001 en forma de parche para núcleo Linux. Se le considera como una implementación completa desde octubre de 2002 donde proporciona seguridad para la aleatoriedad de la pila del núcleo Linux. No obstante, el primer sistema operativo popular en soportar el ASLR por defecto fue la versión 3.4 de OpenBSD en 2003, seguido por Linux 2005. Hoy en día, los principales sistemas operativos cuentan con esta contramedida por defecto.
+
+
+
+Y tras esta introducción vamos a proceder a la prueba de concepto.
+
+
+
+Creación del código:
+
+
+
+Para ello, lo primero que hacemos es crear el código vulnerable. Como podemos ver, es el mismo código que usamos para salvar la contramedida NX o no ejecución. Vemos que hay un error en la asignación de espacio declarada en la función overflow, creando así un archivo escrito en lenguaje C vulnerable a desbordamiento de pila.
+
+
+
+
+
+
+
+Compilación:
+
+
+
+Procedemos a compilar dicho archivo. La prueba de concepto trata de Bypasear tanto el ASLR como el NX.
+
+
+
+
+
+
+
+Comprobación del ASLR y NX:
+
+
+
+Solicitamos que nos muestre el valor en el que se encuentra la ruta de la imagen, teniendo en cuenta que el ASLR puede tener los siguientes valores.
+
+
+
+0» ASLR se encuentra OFF.1» ASLR se encuentra ON, con este valor la pila, la página virtual dinámica de objetos compartidos y las regiones de la memoria compartida estan aleatorizadas.2» ASLR se encuentra ON, además de lo descrito en el valor 1,los segmentos de datos también se encuentran aleatorizados.
+
+
+
+
+
+
+
+Tanto el ASLR como el resto de las contramedidas pueden ser revisadas ejecutando el binario en el debugger con los comandos ASLR y checksec. El comando ASLR ofrece la posibilidad tanto de activar como desactivar la contramedida desde la línea de comandos dentro del propio debugger.
+
+
+
+
+
+
+
+Examinando el binario:
+
+
+
+Comenzamos por ejecutar el binario con nuestro debugger. Estableceremos como punto de ruptura la función main y haremos correr el programa. Una vez que se alcance dicho punto utilizaremos la herramienta VMMAP libc, donde podremos ver las direcciones y el nombre de las librerías que se encuentran alojadas en cada una de ellas.
+
+
+
+
+
+
+
+Activando ASRL en GDB:
+
+
+
+Para que nuestro ataque tenga éxito, lo primero que debemos hacer es asegurarnos que el ASRL se encuentra activado. Esto lo podemos ver ejecutando el comando run, el cual nos arrojará la información de las direcciones. Si cada vez que ejecutamos el programa las direcciones vuelven a ser las mismas esto quiere decir que la contramedida se encuentra desactivada. Si por el contrario cambian, nos indicará que dicha contramedida se encuentra activada como podemos observar en la imagen inferior.
+
+
+
+
+
+
+
+Para activar la contramedida dentro de GDB, debemos introducir el siguiente comando
+
+
+
+
+
+
+
+En la imagen inferior, una vez ejecutado el comando de activación de la contramedida, podemos ver que las direcciones cambian a cada ejecución.
+
+
+
+
+
+
+
+Encontrando y calculando los distintos offset:
+
+
+
+Recordemos que al utilizar la técnica ret2libc, son necesarios 3 elementos que residen en la librería: la dirección de la función System(), la dirección de la función exit() y la dirección de la cadena '/bin/sh', la cual también se encuentra en la librería. Todos estos elementos tienen una constante offset desde la librería base y pueden ser medidos.
+
+
+
+Primero debemos ejecutar un exploit base para poder sobre escribir el registro EIP con la dirección de la función System(). Seguidamente debemos saber el sitio en la pila de la dirección de la función exit() y la dirección de la cadena '/bin/sh'
+
+
+
+
+
+
+
+(El proceso completo lo podeis encontrar en el artículo bypass a la contramedida NX, disponible en esta web)
+
+
+
+Después de hacer correr varias veces el binario dentro de GDB y observar como las librerías efectivamente son mostradas aleatoriamente en cada ejecución, vamos a ejecutar el binario junto con la herramienta LDD. Esta herramienta nos va a mostrar prácticamente la misma información, pero de manera externa. Podemos observar como las librerías tienen distintas direcciones, pero a la vez nos muestra un patrón claro; tanto el byte inicial como el final se mantienen fijos y tan solo cambian los bytes centrales.
+
+
+
+
+
+
+
+Ahora volvemos a utilizar el binario en GDB para encontrar los distintos offset. Para ello primero debemos hacer uso del comando VMMAP libc para que nos muestre las direcciones y las librerías disponibles. Elegiremos la dirección cuyo permiso contenga el de ejecución. Como podemos ver en la imagen de abajo se trata de la segunda dirección. Ahora hacemos uso del comando P más la función y nos devolverá la información de la dirección de registro en la memoria. Volvemos a hacer uso del comando P seguido de la dirección obtenida y la dirección de la librería elegida y como resultado nos devolverá el offset de salida. Esta operación la repetiremos con cada una de las funciones, Ahora bien, para encontrar la dirección de la cadena 'bin/sh' usaremos el comando find seguido del directorio '/bin'. Vemos en la imagen que nos devuelve todas las direcciones que contengan dicha palabra. Entonces, usaremos el primer resultado.
+
+
+
+
+
+
+
+Ya tenemos calculados los distintos offset. Ahora, vamos a proceder a la elección de una librería base. Como ya tenemos calculado cuál es el patrón, lo único que debemos sustituir son los bytes centrales. Elegimos una librería aleatoriamente y en el exploit que veremos a continuación cambiaremos los bytes, creando una librería la cual será la que se ejecute.
+
+
+
+
+
+
+
+Creación del exploit:
+
+
+
+Para la creación de este exploit necesitaremos una librería de Python llamada struct, Esta librería interpreta bytes como paquetes de datos binarios y realiza las conversiones entre valores de Python y estructuras C representadas como objetos (bytes) de Python. Se suele utilizar para el tratamiento de datos binarios almacenados en archivos o desde conexiones de red. Además, utiliza cadenas de formato como descripciones compactas del diseño de las estructuras C y la conversión prevista a valores de Python o desde éstos. Como vemos en la imagen inferior, generamos el exploit con los valores obtenidos previamente.
+
+
+
+
+
+
+
+Ejecución del exploit y obtención de la Shell:
+
+
+
+Es el momento de ejecutar el exploit recientemente creado, pero no podemos hacerlo directamente. Debemos realizar un último truco. Ejecutaremos nuestro exploit hasta que libc se encuentre con nuestra dirección codificada. Para ello usaremos un bucle de bash. En la imagen inferior podemos ver la correcta ejecución del comando que nos dará acceso a la Shell.
+
+
+
+
+
+
+
+Espero que disfrutéis de este tutorial leyéndolo tanto como yo escribiéndolo.
+
+
+
+Happy Hack.
+
+
+
+
+','Bypass ASLR','
