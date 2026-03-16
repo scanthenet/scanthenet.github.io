@@ -21,7 +21,7 @@ Como bien sabe cualquiera que se dedique a la seguridad informática, lo primero
 
 
 
-
+![Ingenieria](/assets/img/2021/07/unnamed.jpg)
 
 
 Bien, como auditor comenzaría a recopilar información sobre horarios de entrada del personal. Podemos ver que desde la calle se pueden ver los puestos de trabajo. Una vez que sé cuando comienzan a entrar e iniciar los dispositivos, grabaría con una cámara la introducción de contraseñas. ¿¿¿Para qué quieres grabar esto??? Para saber las pulsaciones que realiza el vendedor sobre en teclado, un keylogger visual vamos. Si el espacio exterior, como es el caso, me lo permite, realizaría un \"shouldersurfer\" o \"shouldersurfering (esto que suena tan extraño no es más que una técnica conocida y realizada por todos nosotros en el colegio: mirar por el hombro a ver si podías copiar algo del compañero de pupitre). También suele ser normal en los negocios que abran a los clientes sin las sesiones iniciadas. Si es el caso, entraría el primero, fingiendo tener mucha prisa, lo cual me permitiría acercarme al vendedor para contar los pulsos y quizás, coger alguna tecla al vuelo. 
@@ -34,11 +34,11 @@ Bien, como auditor comenzaría a recopilar información sobre horarios de entrad
 
 Si nos fijamos en la primera fotografía, el segundo banco es ideal para poder mirar los tres puestos de trabajo. Ahora sólo necesitamos ir en hora de máxima afluencia de clientes, sentarnos y esperar a ser atendidos. Durante esta franja horaria, con las prisas y el agobio, los vendedores suelen dejar la sesión y el ordenador desbloqueado mientras realizan alguna gestión de entrega de dispositivos, sacar algo del almacén, cosas por el estilo. En ese instante, mientras fingimos estirar las piernas, podremos pasar al lado grabando el paseo, luego visualizaremos las pantallas activas, información de plataformas, iconos de escritorio (tal como vemos en las imágenes siguientes)
 
-
+![Ingenieria](/assets/img/2021/07/5450_movistarok1.jpg)
 
 En esta captura podemos ver que este dispositivo, tiene ejecutando los motores de búsqueda Opera, Explorer, Chrome y Firefox. Ademas ejecuta Skype, Microsoft Word. Por ultimo tiene el Dropbox en modo sincronizado y se conecta por WI-FI.
 
-
+![Ingenieria](/assets/img/2021/07/13.png)
 
 Acabamos de  limitar vectores de ataque. Ya sabemos que el sistema operativo es un Windows 10, que podemos intentar un ataque con malware (un keylogger o grabador de pulsación de teclado en español) e insertarlo en las macros de Word para enviar al vendedor un correo con una factura en formato Word y comprimido en Zip, intentar ataques a las vulnerabilidades conocidas de los buscadores, conseguir privilegios de sistema a través de Skype o comprometer el dispositivo a través Dropbox. Increíble lo que se puede obtener con una imagen, no?
 
@@ -46,7 +46,7 @@ Acabamos de  limitar vectores de ataque. Ya sabemos que el sistema operativo es 
 
 Con esta captura vemos que se encuentra en ejecución varias aplicaciones, pero llama la atención que el icono del Defender este dando una alerta.
 
-
+![Ingenieria](/assets/img/2021/07/11.png)
 
 Al igual que el anterior a veces dejamos clicado la barra de iconos ocultos en ejecución. Pues bien, a simple vista vemos el Chrome, Dropbox, el Bluetooth, Eclipse, Java y gráfica Nvidia. Con estos datos, podemos ir filtrando vectores de ataque e ir reduciendo la lista para perfilar el futuro ataque.
 
@@ -58,7 +58,7 @@ Volvamos a la imagen principal. Los dispositivos son portátiles sin cables a la
 
 Al tener los distintos componentes a la vista podemos ver el ordenador que usan (marca y modelo), la impresora (es otra puerta de ataque, recientemente se puso en conocimiento una vulnerabilidad en la cola de impresión) los teléfonos móviles de los empleados, la chapita con el nombre y número de vendedor (algunas empresas colocan el número de vendedor en la generación de usuario corporativo; otras, las dos primeras letras del nombre y apellidos).
 
-
+![Ingenieria](/assets/img/2021/07/ladron-internet.jpg)
 
 Ahora le toca el turno a la ingeniería social para la obtención de datos. Debemos hablar generando un ambiente distendido, intentando recabar el maximo de información personal del vendedor. ¿Por qué? Si la vendedora Ana lleva un tatuaje o un abalorio con motivos de perros, le podemos preguntar si tiene perro, que raza es, como se llama... Si lleva alianza, intentamos averiguar si esta casada y si llevan muchos años casados, si tienen hijos (en caso afirmativo es muy probable que la contraseña contenga referencia a los mismos)... También podemos montar el teatro que el teléfono es para regalo de cumpleaños y en el momento adecuado preguntarle por su cumpleaños. Saber de donde es nos será de gran ayuda a la hora de la búsqueda en redes sociales, plataformas de empleo..... Todo ello para delimitar el rango del mismo.
 
